@@ -1,4 +1,4 @@
 streamlit
-openai
-python-docx     # for Word docs
-PyPDF2          # for PDFs
+openai>=1.0.0
+PyPDF2
+python-docx
