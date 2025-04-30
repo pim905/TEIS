@@ -1,16 +1,16 @@
 import streamlit as st
 import spacy
 
-# Load spaCy model
-nlp = spacy.load("en_core_web_sm")
+st.title("spaCy Entity Recognizer")
 
-# App title
-st.title("Simple spaCy NER Test")
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    st.error("Model not found. Try restarting or reinstalling.")
+    st.stop()
 
-# Text input
-text = st.text_area("Enter some text:", "Barack Obama was born on August 4, 1961.")
+text = st.text_area("Enter some text", "Elon Musk was born on June 28, 1971.")
 
-# Process and display entities
 if text:
     doc = nlp(text)
     st.subheader("Named Entities")
