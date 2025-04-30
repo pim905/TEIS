@@ -1,18 +1,74 @@
 import streamlit as st
-import spacy
+import re
+import nltk
+from nltk import ne_chunk, pos_tag, word_tokenize
+from nltk.tree import Tree
+import dateparser
+from io import StringIO
+import docx
+import fitz  # PyMuPDF
 
-st.title("spaCy Entity Recognizer")
+nltk.download('punkt')
+nltk.download('maxent_ne_chunker')
+nltk.download('words')
+nltk.download('averaged_perceptron_tagger')
 
-try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    st.error("Model not found. Try restarting or reinstalling.")
-    st.stop()
+def extract_names(text):
+    names = []
+    chunks = ne_chunk(pos_tag(word_tokenize(text)))
+    for chunk in chunks:
+        if type(chunk) == Tree and chunk.label() == 'PERSON':
+            name = " ".join(c[0] for c in chunk)
+            names.append(name)
+    return names
 
-text = st.text_area("Enter some text", "Elon Musk was born on June 28, 1971.")
+def extract_dates(text):
+    date_regex = r'\b(?:\d{1,2}(?:st|nd|rd|th)?\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4}|\d{4}-\d{2}-\d{2}|\d{2}/\d{2}/\d{4})\b'
+    matches = re.findall(date_regex, text)
+    parsed_dates = [dateparser.parse(match).strftime('%Y-%m-%d') for match in matches if dateparser.parse(match)]
+    return parsed_dates
 
-if text:
-    doc = nlp(text)
-    st.subheader("Named Entities")
-    for ent in doc.ents:
-        st.write(f"{ent.text} ({ent.label_})")
+def read_docx(file):
+    doc = docx.Document(file)
+    return "\n".join([para.text for para in doc.paragraphs])
+
+def read_pdf(file):
+    pdf = fitz.open(stream=file.read(), filetype="pdf")
+    text = ""
+    for page in pdf:
+        text += page.get_text()
+    return text
+
+# Streamlit UI
+st.title("Name & Date Extractor")
+
+input_mode = st.radio("Choose input type:", ["Upload File", "Paste Text"])
+
+text = ""
+
+if input_mode == "Upload File":
+    uploaded_file = st.file_uploader("Upload a .txt, .docx, or .pdf file", type=['txt', 'docx', 'pdf'])
+    if uploaded_file:
+        if uploaded_file.type == "text/plain":
+            text = uploaded_file.read().decode("utf-8")
+        elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+            text = read_docx(uploaded_file)
+        elif uploaded_file.type == "application/pdf":
+            text = read_pdf(uploaded_file)
+        else:
+            st.warning("Unsupported file type.")
+elif input_mode == "Paste Text":
+    text = st.text_area("Paste your text here:")
+
+if st.button("Extract"):
+    if text:
+        names = extract_names(text)
+        dates = extract_dates(text)
+
+        st.subheader("Names Found")
+        st.write(names if names else "No names found.")
+
+        st.subheader("Dates Found")
+        st.write(dates if dates else "No dates found.")
+    else:
+        st.warning("Please enter or upload some text.")
