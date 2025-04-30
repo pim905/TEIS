@@ -3,9 +3,25 @@ from nltk import pos_tag, word_tokenize, ne_chunk
 from nltk.tree import Tree
 import re
 import io
+import os
 from PyPDF2 import PdfReader
 import nltk
 nltk.data.path.append('/path/to/nltk_data')  # Update with your actual path if necessary
+nltk_data_path = '/root/nltk_data'  # Use a directory path where nltk data can be stored in the cloud environment
+
+# Check if the necessary data is already downloaded
+if not os.path.exists(os.path.join(nltk_data_path, 'punkt')):
+    nltk.download('punkt', download_dir=nltk_data_path)
+if not os.path.exists(os.path.join(nltk_data_path, 'averaged_perceptron_tagger')):
+    nltk.download('averaged_perceptron_tagger', download_dir=nltk_data_path)
+if not os.path.exists(os.path.join(nltk_data_path, 'maxent_ne_chunker')):
+    nltk.download('maxent_ne_chunker', download_dir=nltk_data_path)
+if not os.path.exists(os.path.join(nltk_data_path, 'words')):
+    nltk.download('words', download_dir=nltk_data_path)
+
+# Set the NLTK data path
+nltk.data.path.append(nltk_data_path)
+
 
 # Ensure necessary NLTK resources are downloaded
 nltk.download('punkt')
