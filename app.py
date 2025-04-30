@@ -3,10 +3,11 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag, ne_chunk
 
-# Download necessary NLTK resources if not already present
+# Download necessary NLTK resources
 nltk.download('punkt')
 nltk.download('maxent_ne_chunker')
 nltk.download('words')
+nltk.download('averaged_perceptron_tagger')  # Add this line
 
 # Function to extract names from text
 def extract_names(text):
