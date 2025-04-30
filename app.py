@@ -1,14 +1,14 @@
 import streamlit as st
 from nltk.tree import Tree
-from nltk.tokenize import word_tokenize
-import re
-import io
-from PyPDF2 import PdfReader
 import nltk
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('maxent_ne_chunker')
 nltk.download('words')
+from nltk import word_tokenize, pos_tag, ne_chunk
+import re
+import io
+from PyPDF2 import PdfReader
 
 
 
