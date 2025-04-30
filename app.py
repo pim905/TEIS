@@ -4,6 +4,7 @@ from nltk.tokenize import word_tokenize
 from nltk import pos_tag, ne_chunk
 import fitz  # PyMuPDF for PDF text extraction
 import io  # For handling in-memory files
+import datefinder  # For extracting dates from text
 
 # Download necessary NLTK resources
 nltk.download('punkt')
@@ -26,6 +27,12 @@ def extract_names(text):
     
     return people_names
 
+# Function to extract dates from text using datefinder
+def extract_dates(text):
+    matches = datefinder.find_dates(text)
+    dates = [match.strftime('%Y-%m-%d') for match in matches]  # Format as YYYY-MM-DD
+    return dates
+
 # Function to extract text from a PDF file (now handling in-memory PDF)
 def extract_text_from_pdf(pdf_file):
     # Read the uploaded PDF file as a byte stream
@@ -39,33 +46,52 @@ def extract_text_from_pdf(pdf_file):
     return text
 
 # Streamlit app interface
-st.title("Named Entity Recognition (NER) with NLTK")
+st.title("Named Entity Recognition (NER) and Date Extraction with NLTK")
 
 input_type = st.radio("Choose Input Type", ("Plain Text", "PDF File"))
 
 if input_type == "Plain Text":
     text_input = st.text_area("Paste your text here:")
-    if text_input and st.button('Extract Names'):
+    if text_input and st.button('Extract Names and Dates'):
         names = extract_names(text_input)
+        dates = extract_dates(text_input)
+        
         if names:
             st.subheader("Extracted People Names:")
             for name in names:
                 st.write(name)
         else:
             st.write("No people's names found in the text.")
+        
+        if dates:
+            st.subheader("Extracted Dates:")
+            for date in dates:
+                st.write(date)
+        else:
+            st.write("No dates found in the text.")
 
 elif input_type == "PDF File":
     pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
-    if pdf_file and st.button('Extract Names'):
+    if pdf_file and st.button('Extract Names and Dates'):
         text_from_pdf = extract_text_from_pdf(pdf_file)
         st.text_area("Extracted PDF Text:", text_from_pdf)  # Display extracted text for debugging
+        
         if text_from_pdf:
             names = extract_names(text_from_pdf)
+            dates = extract_dates(text_from_pdf)
+            
             if names:
                 st.subheader("Extracted People Names:")
                 for name in names:
                     st.write(name)
             else:
                 st.write("No people's names found in the PDF.")
+                
+            if dates:
+                st.subheader("Extracted Dates:")
+                for date in dates:
+                    st.write(date)
+            else:
+                st.write("No dates found in the PDF.")
         else:
             st.write("No text extracted from the PDF.")
