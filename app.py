@@ -3,6 +3,7 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag, ne_chunk
 import fitz  # PyMuPDF for PDF text extraction
+import io  # For handling in-memory files
 
 # Download necessary NLTK resources
 nltk.download('punkt')
@@ -25,9 +26,11 @@ def extract_names(text):
     
     return people_names
 
-# Function to extract text from a PDF file
+# Function to extract text from a PDF file (now handling in-memory PDF)
 def extract_text_from_pdf(pdf_file):
-    doc = fitz.open(pdf_file)
+    # Open the PDF file from the uploaded byte stream
+    pdf_bytes = pdf_file.read()  # Read the uploaded file's bytes
+    doc = fitz.open(io.BytesIO(pdf_bytes))  # Using BytesIO to open the PDF from memory
     text = ""
     for page_num in range(doc.page_count):
         page = doc.load_page(page_num)
