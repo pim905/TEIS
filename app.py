@@ -1,6 +1,6 @@
 import streamlit as st
 from nltk.tree import Tree
-from nltk import word_tokenize, pos_tag
+from nltk import word_tokenize
 import re
 import io
 from PyPDF2 import PdfReader
