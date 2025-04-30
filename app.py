@@ -4,20 +4,27 @@ import nltk
 from nltk import ne_chunk, pos_tag, word_tokenize
 from nltk.tree import Tree
 import dateparser
-from io import StringIO
 import docx
 import fitz  # PyMuPDF
+import os
 
-nltk.download('punkt')
-nltk.download('maxent_ne_chunker')
-nltk.download('words')
-nltk.download('averaged_perceptron_tagger')
+# Setup NLTK data directory for Streamlit Cloud compatibility
+nltk_data_path = os.path.join(os.getcwd(), "nltk_data")
+nltk.data.path.append(nltk_data_path)
+
+def download_nltk_data():
+    nltk.download('punkt', download_dir=nltk_data_path)
+    nltk.download('maxent_ne_chunker', download_dir=nltk_data_path)
+    nltk.download('words', download_dir=nltk_data_path)
+    nltk.download('averaged_perceptron_tagger', download_dir=nltk_data_path)
+
+download_nltk_data()
 
 def extract_names(text):
     names = []
     chunks = ne_chunk(pos_tag(word_tokenize(text)))
     for chunk in chunks:
-        if type(chunk) == Tree and chunk.label() == 'PERSON':
+        if isinstance(chunk, Tree) and chunk.label() == 'PERSON':
             name = " ".join(c[0] for c in chunk)
             names.append(name)
     return names
@@ -40,7 +47,7 @@ def read_pdf(file):
     return text
 
 # Streamlit UI
-st.title("Name & Date Extractor")
+st.title("📄 Name & Date Extractor")
 
 input_mode = st.radio("Choose input type:", ["Upload File", "Paste Text"])
 
@@ -62,13 +69,14 @@ elif input_mode == "Paste Text":
 
 if st.button("Extract"):
     if text:
-        names = extract_names(text)
-        dates = extract_dates(text)
+        with st.spinner("Processing..."):
+            names = extract_names(text)
+            dates = extract_dates(text)
 
-        st.subheader("Names Found")
+        st.subheader("👤 Names Found")
         st.write(names if names else "No names found.")
 
-        st.subheader("Dates Found")
+        st.subheader("📅 Dates Found")
         st.write(dates if dates else "No dates found.")
     else:
         st.warning("Please enter or upload some text.")
