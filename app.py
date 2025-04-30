@@ -51,7 +51,7 @@ def extract_names_dates(text):
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo",  # Use GPT-3.5 instead of GPT-4
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
         )
