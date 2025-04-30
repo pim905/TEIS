@@ -1,12 +1,18 @@
 import streamlit as st
-import spacy_streamlit
 import spacy
 
-st.title("Explore spaCy NER")
-
+# Load spaCy model
 nlp = spacy.load("en_core_web_sm")
-text = st.text_area("Enter text here", "Barack Obama was born on August 4, 1961.")
 
+# App title
+st.title("Simple spaCy NER Test")
+
+# Text input
+text = st.text_area("Enter some text:", "Barack Obama was born on August 4, 1961.")
+
+# Process and display entities
 if text:
     doc = nlp(text)
-    spacy_streamlit.visualize_ner(doc, labels=nlp.get_pipe("ner").labels)
+    st.subheader("Named Entities")
+    for ent in doc.ents:
+        st.write(f"{ent.text} ({ent.label_})")
