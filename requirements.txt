@@ -1,0 +1,4 @@
+streamlit
+openai
+python-docx     # for Word docs
+PyPDF2          # for PDFs
