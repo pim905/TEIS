@@ -1,6 +1,12 @@
 import streamlit as st
-from nltk import word_tokenize, pos_tag, ne_chunk
+from nltk import pos_tag, word_tokenize, ne_chunk
 from nltk.tree import Tree
+
+# inside your function:
+tokens = word_tokenize(text)
+tagged = pos_tag(tokens)  # <- DO NOT pass lang='eng'
+chunks = ne_chunk(tagged)
+
 import re
 import io
 from PyPDF2 import PdfReader
@@ -9,6 +15,7 @@ nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('maxent_ne_chunker')
 nltk.download('words')
+
 
 
 st.title("📄 Date and Name Extractor")
