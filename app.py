@@ -1,5 +1,6 @@
 import streamlit as st
 import spacy
+import spacy_streamlit
 from io import StringIO
 
 # Load spaCy model
