@@ -1,22 +1,16 @@
 import streamlit as st
 from nltk import pos_tag, word_tokenize, ne_chunk
 from nltk.tree import Tree
-
-# inside your function:
-tokens = word_tokenize(text)
-tagged = pos_tag(tokens)  # <- DO NOT pass lang='eng'
-chunks = ne_chunk(tagged)
-
 import re
 import io
 from PyPDF2 import PdfReader
 import nltk
+
+# Ensure necessary NLTK resources are downloaded
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('maxent_ne_chunker')
 nltk.download('words')
-
-
 
 st.title("📄 Date and Name Extractor")
 
@@ -32,7 +26,7 @@ def extract_names(text):
     names = []
     try:
         tokens = word_tokenize(text)
-        tagged = pos_tag(tokens, lang='eng')  # Use correct lang code
+        tagged = pos_tag(tokens)  # Use correct language code
         tree = ne_chunk(tagged)
         for chunk in tree:
             if isinstance(chunk, Tree) and chunk.label() == "PERSON":
@@ -43,14 +37,17 @@ def extract_names(text):
     return names
 
 def extract_dates(text):
-    # Very basic pattern, can be expanded
+    # Basic date pattern
     date_pattern = r"\b(?:\d{1,2}[-/th|st|nd|rd\s]*)?(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*[-/\s,]*\d{2,4}\b|\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b"
     return re.findall(date_pattern, text, flags=re.IGNORECASE)
 
 # User input
 input_mode = st.radio("Choose input method:", ["Upload PDF", "Paste Text"])
 
+# Initialize 'text' variable
 text = ""
+
+# Depending on input method, get the text
 if input_mode == "Upload PDF":
     uploaded_file = st.file_uploader("Upload a PDF file", type=["pdf"])
     if uploaded_file is not None:
