@@ -14,10 +14,11 @@ nltk.data.path.append(nltk_data_path)
 
 def download_nltk_data():
     try:
+        # Ensure all required NLTK resources are downloaded
         nltk.download('punkt', download_dir=nltk_data_path)  # Tokenizer models
         nltk.download('punkt_tab', download_dir=nltk_data_path)  # Needed for sentence tokenization
-        nltk.download('maxent_ne_chunker', download_dir=nltk_data_path)
-        nltk.download('words', download_dir=nltk_data_path)
+        nltk.download('maxent_ne_chunker', download_dir=nltk_data_path)  # Named Entity Chunker
+        nltk.download('words', download_dir=nltk_data_path)  # Word list for named entity recognition
         nltk.download('averaged_perceptron_tagger', download_dir=nltk_data_path)  # POS tagger
     except Exception as e:
         st.error(f"Error downloading NLTK data: {e}")
@@ -26,11 +27,15 @@ download_nltk_data()
 
 def extract_names(text):
     names = []
-    chunks = ne_chunk(pos_tag(word_tokenize(text)))
-    for chunk in chunks:
-        if isinstance(chunk, Tree) and chunk.label() == 'PERSON':
-            name = " ".join(c[0] for c in chunk)
-            names.append(name)
+    try:
+        # Tokenize, POS tag, and chunk named entities
+        chunks = ne_chunk(pos_tag(word_tokenize(text)))
+        for chunk in chunks:
+            if isinstance(chunk, Tree) and chunk.label() == 'PERSON':
+                name = " ".join(c[0] for c in chunk)
+                names.append(name)
+    except Exception as e:
+        st.error(f"Error extracting names: {e}")
     return names
 
 def extract_dates(text):
