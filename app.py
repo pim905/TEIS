@@ -1,75 +1,67 @@
-import spacy
 import streamlit as st
-from datetime import datetime
-import spacy.cli
-import os
+import spacy
+from io import StringIO
 
-# Check if the spaCy model is already installed; if not, download it
-if not os.path.exists(spacy.util.get_package_path("en_core_web_trf")):
-    spacy.cli.download("en_core_web_trf")
+# Load spaCy model
+nlp = spacy.load("en_core_web_sm")
 
-# Load the spaCy model for Named Entity Recognition (NER)
-nlp = spacy.load("en_core_web_trf")
-
-# Function to extract names and dates from text using spaCy
-def extract_names_and_dates(text):
+# Function to extract names and dates from text
+def extract_entities(text):
     doc = nlp(text)
-
-    # Initialize empty lists to store names and dates
     names = []
     dates = []
-
-    # Loop through the named entities identified by spaCy
+    
+    # Extracting names (PERSON) and dates (DATE)
     for ent in doc.ents:
         if ent.label_ == "PERSON":
-            names.append(ent.text)  # Extract names
+            names.append(ent.text)
         elif ent.label_ == "DATE":
-            # You can normalize dates if needed (optional)
-            try:
-                parsed_date = datetime.strptime(ent.text, '%Y-%m-%d')
-                dates.append(parsed_date.strftime('%B %d, %Y'))
-            except ValueError:
-                dates.append(ent.text)  # If date is in a non-standard format
-
+            dates.append(ent.text)
+    
     return names, dates
 
-# Streamlit app code
-st.set_page_config(page_title="Name and Date Extractor", layout="centered")
-st.title("📄 Extract Names & Dates from Documents")
+# Streamlit interface
+st.title("Entity Extractor (Names and Dates)")
 
-st.markdown("Upload a document and this app will extract people's names and dates.")
+# Option for user to choose between document upload and plain text input
+option = st.selectbox("Choose input type", ("Upload Document", "Enter Plain Text"))
 
-# File uploader
-uploaded_file = st.file_uploader("Choose a file", type=["pdf", "docx", "txt"])
+if option == "Upload Document":
+    uploaded_file = st.file_uploader("Choose a document", type=["txt", "pdf", "docx"])
+    if uploaded_file is not None:
+        # Read the content of the document
+        if uploaded_file.type == "text/plain":
+            text = uploaded_file.getvalue().decode("utf-8")
+        elif uploaded_file.type == "application/pdf":
+            # For PDF files, you can use PyMuPDF or pdfplumber (install them if needed)
+            import pdfplumber
+            with pdfplumber.open(uploaded_file) as pdf:
+                text = "\n".join([page.extract_text() for page in pdf.pages])
+        elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+            # For DOCX files, you can use python-docx
+            from docx import Document
+            doc = Document(uploaded_file)
+            text = "\n".join([p.text for p in doc.paragraphs])
+        
+        # Extract names and dates
+        names, dates = extract_entities(text)
+        
+        # Display extracted entities
+        st.subheader("Extracted Names")
+        st.write(names)
+        
+        st.subheader("Extracted Dates")
+        st.write(dates)
 
-def read_file(file):
-    if file.name.endswith(".pdf"):
-        # Handle PDF reading (can use PyPDF2 or other libraries)
-        pass
-    elif file.name.endswith(".docx"):
-        # Handle DOCX reading (use python-docx)
-        pass
-    elif file.name.endswith(".txt"):
-        # Handle TXT reading
-        text = file.read().decode("utf-8")
-        return text
-    return ""
-
-if uploaded_file:
-    # Read the uploaded file
-    text = read_file(uploaded_file)
-
-    if text:
-        # Display the raw text
-        st.subheader("Extracted Text")
-        st.text_area("Raw Text", text, height=200)
-
-        # Extract names and dates using spaCy
-        names, dates = extract_names_and_dates(text)
-
-        # Show the results
-        st.subheader("Extracted Names and Dates")
-        st.write("Names:", names)
-        st.write("Dates:", dates)
-    else:
-        st.warning("No text extracted from file.")
+elif option == "Enter Plain Text":
+    input_text = st.text_area("Enter your text here")
+    if input_text:
+        # Extract names and dates
+        names, dates = extract_entities(input_text)
+        
+        # Display extracted entities
+        st.subheader("Extracted Names")
+        st.write(names)
+        
+        st.subheader("Extracted Dates")
+        st.write(dates)
