@@ -1,5 +1,2 @@
-streamlit>=1.10.0
-spacy>=3.1.0
-spacy-streamlit>=1.0.5
-pdfplumber>=0.5.28
-python-docx>=0.8.11
+streamlit
+spacy
