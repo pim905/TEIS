@@ -2,6 +2,7 @@ import streamlit as st
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag, ne_chunk
+import fitz  # PyMuPDF for PDF text extraction
 
 # Download necessary NLTK resources
 nltk.download('punkt')
@@ -31,15 +32,26 @@ def extract_names(text):
     
     return people_names
 
+# Function to extract text from a PDF file
+def extract_text_from_pdf(pdf_file):
+    # Open the uploaded PDF file
+    doc = fitz.open(pdf_file)
+    text = ""
+    for page_num in range(doc.page_count):
+        page = doc.load_page(page_num)
+        text += page.get_text("text")
+    return text
+
 # Streamlit app interface
 st.title("Named Entity Recognition (NER) with NLTK")
 
-# Input area for user to paste text
-text_input = st.text_area("Paste your text here:")
+# Option to choose between plain text or PDF
+input_type = st.radio("Choose Input Type", ("Plain Text", "PDF File"))
 
-# Button to extract names
-if st.button('Extract Names'):
-    if text_input:
+# Handle Plain Text Input
+if input_type == "Plain Text":
+    text_input = st.text_area("Paste your text here:")
+    if text_input and st.button('Extract Names'):
         names = extract_names(text_input)
         if names:
             st.subheader("Extracted People Names:")
@@ -47,5 +59,19 @@ if st.button('Extract Names'):
                 st.write(name)
         else:
             st.write("No people's names found in the text.")
-    else:
-        st.write("Please paste some text to extract names.")
+
+# Handle PDF Upload
+elif input_type == "PDF File":
+    pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
+    if pdf_file and st.button('Extract Names'):
+        text_from_pdf = extract_text_from_pdf(pdf_file)
+        if text_from_pdf:
+            names = extract_names(text_from_pdf)
+            if names:
+                st.subheader("Extracted People Names:")
+                for name in names:
+                    st.write(name)
+            else:
+                st.write("No people's names found in the PDF.")
+        else:
+            st.write("No text extracted from the PDF.")
