@@ -1,10 +1,10 @@
 import streamlit as st
-import openai
+from openai import OpenAI
 import PyPDF2
 from docx import Document
 
-# Set your OpenAI API key
-openai.api_key = "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"
+# Initialize OpenAI client with your API key
+client = OpenAI(api_key="your-api-key-here")
 
 st.set_page_config(page_title="Name and Date Extractor", layout="centered")
 st.title("📄 AI Name & Date Extractor")
@@ -44,18 +44,18 @@ def read_file(file):
 def extract_names_dates(text):
     prompt = (
         "Extract all names of people and all dates from the following text. "
-        "Return the results in **two separate lists**: one for names, one for dates. "
+        "Return the results in two separate lists: one for names, one for dates. "
         "List names only once each. Use plain formatting.\n\n"
         f"Text:\n{text}"
     )
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
         )
-        return response["choices"][0]["message"]["content"]
+        return response.choices[0].message.content
     except Exception as e:
         st.error(f"OpenAI API error: {e}")
         return ""
@@ -63,11 +63,11 @@ def extract_names_dates(text):
 if uploaded_file:
     st.subheader("📃 Extracting Text")
     text = read_file(uploaded_file)
-
+    
     if text:
         with st.expander("View raw text from file"):
             st.text_area("File Text", text, height=200)
-
+        
         st.subheader("🔍 Extracted Names & Dates")
         with st.spinner("Analyzing with OpenAI..."):
             result = extract_names_dates(text)
