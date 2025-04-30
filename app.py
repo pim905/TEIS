@@ -5,7 +5,7 @@ import re
 import io
 from PyPDF2 import PdfReader
 import nltk
-from nameparser import HumanName
+nltk.data.path.append('/path/to/nltk_data')  # Update with your actual path if necessary
 
 # Ensure necessary NLTK resources are downloaded
 nltk.download('punkt')
@@ -17,7 +17,6 @@ st.title("📄 Date and Name Extractor")
 
 # Helper functions
 def extract_text_from_pdf(uploaded_file):
-    """Extract text from the uploaded PDF file."""
     reader = PdfReader(uploaded_file)
     text = ""
     for page in reader.pages:
@@ -25,35 +24,22 @@ def extract_text_from_pdf(uploaded_file):
     return text
 
 def extract_names(text):
-    """Extract names using NLTK's Named Entity Recognition."""
     names = []
     try:
-        tokens = word_tokenize(text)
-        tagged = pos_tag(tokens)  # Part-of-speech tagging
-        tree = ne_chunk(tagged)   # Named entity recognition
-        person_list = []
-        for subtree in tree:
-            if isinstance(subtree, Tree) and subtree.label() == "PERSON":
-                person = [leaf[0] for leaf in subtree.leaves()]
-                name = ' '.join(person)
-                if name not in person_list:
-                    person_list.append(name)
-
-        # Format names using HumanName
-        formatted_names = []
-        for name in person_list:
-            human_name = HumanName(name)
-            formatted_names.append(f"{human_name.last}, {human_name.first}")
-
-        names = formatted_names
-
+        # Tokenize, POS tag, and chunk using NLTK's NE chunker
+        nltk_results = ne_chunk(pos_tag(word_tokenize(text)))
+        for nltk_result in nltk_results:
+            if isinstance(nltk_result, Tree):  # If the chunk is a tree (named entity)
+                name = ''
+                for nltk_result_leaf in nltk_result.leaves():
+                    name += nltk_result_leaf[0] + ' '
+                names.append(name.strip())  # Add the name without the trailing space
     except Exception as e:
         st.error(f"Error extracting names:\n\n{str(e)}")
-    
     return names
 
 def extract_dates(text):
-    """Extract dates using a basic regex pattern."""
+    # Basic date pattern
     date_pattern = r"\b(?:\d{1,2}[-/th|st|nd|rd\s]*)?(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*[-/\s,]*\d{2,4}\b|\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b"
     return re.findall(date_pattern, text, flags=re.IGNORECASE)
 
