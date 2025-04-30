@@ -1,6 +1,8 @@
 streamlit
 nltk
+nameparser
 dateparser
 python-docx
 PyMuPDF
 PyPDF2
+
