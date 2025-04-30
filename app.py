@@ -28,9 +28,9 @@ def extract_names(text):
 
 # Function to extract text from a PDF file (now handling in-memory PDF)
 def extract_text_from_pdf(pdf_file):
-    # Open the PDF file from the uploaded byte stream
+    # Read the uploaded PDF file as a byte stream
     pdf_bytes = pdf_file.read()  # Read the uploaded file's bytes
-    doc = fitz.open(io.BytesIO(pdf_bytes))  # Using BytesIO to open the PDF from memory
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")  # Open the PDF from the byte stream
     text = ""
     for page_num in range(doc.page_count):
         page = doc.load_page(page_num)
