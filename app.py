@@ -4,7 +4,7 @@ import PyPDF2
 from docx import Document
 
 # Initialize OpenAI client with your API key
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="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")
 
 st.set_page_config(page_title="Name and Date Extractor", layout="centered")
 st.title("📄 AI Name & Date Extractor")
