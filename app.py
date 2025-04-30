@@ -5,6 +5,7 @@ import re
 import io
 from PyPDF2 import PdfReader
 import nltk
+nltk.data.path.append('/path/to/nltk_data')
 
 # Ensure necessary NLTK resources are downloaded
 nltk.download('punkt')
