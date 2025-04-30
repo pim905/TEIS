@@ -1,17 +1,16 @@
 import streamlit as st
-import nltk
-from nltk import word_tokenize, pos_tag, ne_chunk
 from nltk.tree import Tree
 import re
 import io
 from PyPDF2 import PdfReader
+import nltk
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('maxent_ne_chunker')
+nltk.download('words')
 
-# Download only the required NLTK data
-nltk.data.path.append("nltk_data")
-nltk.download("punkt", download_dir="nltk_data")
-nltk.download("averaged_perceptron_tagger", download_dir="nltk_data")
-nltk.download("maxent_ne_chunker", download_dir="nltk_data")
-nltk.download("words", download_dir="nltk_data")
+
+
 
 st.title("📄 Date and Name Extractor")
 
