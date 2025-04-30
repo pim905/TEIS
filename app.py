@@ -2,9 +2,11 @@ import spacy
 import streamlit as st
 from datetime import datetime
 import spacy.cli
+import os
 
-# Download the spaCy model (en_core_web_trf) if it's not already installed
-spacy.cli.download("en_core_web_trf")
+# Check if the spaCy model is already installed; if not, download it
+if not os.path.exists(spacy.util.get_package_path("en_core_web_trf")):
+    spacy.cli.download("en_core_web_trf")
 
 # Load the spaCy model for Named Entity Recognition (NER)
 nlp = spacy.load("en_core_web_trf")
@@ -37,6 +39,7 @@ st.title("📄 Extract Names & Dates from Documents")
 
 st.markdown("Upload a document and this app will extract people's names and dates.")
 
+# File uploader
 uploaded_file = st.file_uploader("Choose a file", type=["pdf", "docx", "txt"])
 
 def read_file(file):
@@ -44,7 +47,7 @@ def read_file(file):
         # Handle PDF reading (can use PyPDF2 or other libraries)
         pass
     elif file.name.endswith(".docx"):
-        # Handle DOCX reading
+        # Handle DOCX reading (use python-docx)
         pass
     elif file.name.endswith(".txt"):
         # Handle TXT reading
