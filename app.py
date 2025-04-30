@@ -8,25 +8,18 @@ import fitz  # PyMuPDF for PDF text extraction
 nltk.download('punkt')
 nltk.download('maxent_ne_chunker')
 nltk.download('words')
-nltk.download('averaged_perceptron_tagger')  # Add this line
+nltk.download('averaged_perceptron_tagger')
 
 # Function to extract names from text
 def extract_names(text):
-    # Tokenize the input text
     words = word_tokenize(text)
-    
-    # POS tagging
     tagged_words = pos_tag(words)
-    
-    # Named Entity Recognition (NER)
     named_entities = ne_chunk(tagged_words)
     
-    # Extract PERSON entities
     people_names = []
     for chunk in named_entities:
         if isinstance(chunk, nltk.Tree):
             if chunk.label() == 'PERSON':
-                # Join the words that make up the person's name
                 name = " ".join([word for word, tag in chunk])
                 people_names.append(name)
     
@@ -34,21 +27,19 @@ def extract_names(text):
 
 # Function to extract text from a PDF file
 def extract_text_from_pdf(pdf_file):
-    # Open the uploaded PDF file
     doc = fitz.open(pdf_file)
     text = ""
     for page_num in range(doc.page_count):
         page = doc.load_page(page_num)
-        text += page.get_text("text")
+        page_text = page.get_text("text")
+        text += page_text
     return text
 
 # Streamlit app interface
 st.title("Named Entity Recognition (NER) with NLTK")
 
-# Option to choose between plain text or PDF
 input_type = st.radio("Choose Input Type", ("Plain Text", "PDF File"))
 
-# Handle Plain Text Input
 if input_type == "Plain Text":
     text_input = st.text_area("Paste your text here:")
     if text_input and st.button('Extract Names'):
@@ -60,11 +51,11 @@ if input_type == "Plain Text":
         else:
             st.write("No people's names found in the text.")
 
-# Handle PDF Upload
 elif input_type == "PDF File":
     pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
     if pdf_file and st.button('Extract Names'):
         text_from_pdf = extract_text_from_pdf(pdf_file)
+        st.text_area("Extracted PDF Text:", text_from_pdf)  # Display extracted text for debugging
         if text_from_pdf:
             names = extract_names(text_from_pdf)
             if names:
