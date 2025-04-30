@@ -1,7 +1,2 @@
 streamlit
-python-docx
 nltk
-nameparser
-PyPDF2
-PyMuPDF
-streamlit
