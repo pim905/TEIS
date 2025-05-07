@@ -5,10 +5,11 @@ from nltk import pos_tag, ne_chunk
 from nltk.tree import Tree
 import fitz  # PyMuPDF
 import datefinder
-import urllib.request
 import os
+import urllib.request
 from fpdf import FPDF
-from gensim.summarization import summarize
+from sumy.parsers.plaintext import PlaintextParser
+from sumy.summarizers.lsa import LsaSummarizer
 
 # Download necessary NLTK resources
 nltk.download('punkt')
@@ -45,12 +46,12 @@ def extract_dates(text):
     matches = datefinder.find_dates(text)
     return [match.strftime('%Y-%m-%d') for match in matches]
 
-# Function to summarize text
-def summarize_text(text):
-    try:
-        return summarize(text, word_count=100)
-    except:
-        return "Summary could not be generated (text may be too short or not suitable)."
+# Function to summarize text using sumy
+def summarize_text_with_sumy(text):
+    parser = PlaintextParser.from_string(text, PlaintextParser.from_string)
+    summarizer = LsaSummarizer()
+    summary = summarizer(parser.document, 3)  # Summarizes into 3 sentences (adjustable)
+    return ' '.join([str(sentence) for sentence in summary])
 
 # Extract text from PDF
 def extract_text_from_pdf(pdf_file):
@@ -107,7 +108,7 @@ if input_type == "Plain Text":
     if text_input and st.button("Extract & Summarize"):
         names = extract_names(text_input)
         dates = extract_dates(text_input)
-        summary = summarize_text(text_input)
+        summary = summarize_text_with_sumy(text_input)
 
         st.subheader("Extracted People Names:")
         st.write(names if names else "None found")
@@ -136,7 +137,7 @@ elif input_type == "PDF File":
 
         names = extract_names(text_from_pdf)
         dates = extract_dates(text_from_pdf)
-        summary = summarize_text(text_from_pdf)
+        summary = summarize_text_with_sumy(text_from_pdf)
 
         st.subheader("Extracted People Names:")
         st.write(names if names else "None found")
