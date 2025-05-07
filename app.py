@@ -2,15 +2,16 @@ import streamlit as st
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag, ne_chunk
-import fitz  # PyMuPDF for PDF text extraction
-import io  # For handling in-memory files
-import datefinder  # For extracting dates from text
+import fitz  # PyMuPDF
+import io
+import datefinder
 
-# Sumy summarization
+# Correct imports
 from sumy.parsers.plaintext import PlaintextParser
 from sumy.nlp.tokenizers import Tokenizer
 from sumy.summarizers.lsa import LsaSummarizer
-from fpdf import FPDF  # PDF generation
+from fpdf import FPDF  # For PDF generation
+
 
 # Download necessary NLTK resources
 nltk.download('punkt')
