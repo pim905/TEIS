@@ -10,6 +10,7 @@ import urllib.request
 from fpdf import FPDF
 from sumy.parsers.plaintext import PlaintextParser
 from sumy.summarizers.lsa import LsaSummarizer
+from sumy.utils import Tokenizer
 import re
 
 # Download necessary NLTK resources
@@ -49,7 +50,8 @@ def extract_dates(text):
 
 # Function to summarize text using sumy
 def summarize_text_with_sumy(text):
-    parser = PlaintextParser.from_string(text, PlaintextParser.from_string)
+    tokenizer = Tokenizer()
+    parser = PlaintextParser.from_string(text, tokenizer)
     summarizer = LsaSummarizer()
     summary = summarizer(parser.document, 3)  # Summarizes into 3 sentences (adjustable)
     return ' '.join([str(sentence) for sentence in summary])
