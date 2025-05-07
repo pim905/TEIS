@@ -1,6 +1,6 @@
-streamlit
+streamlit==1.10.0
 nltk==3.8.1
-PyMuPDF
-datefinder
-fpdf2
-sumy
+PyMuPDF==1.18.19
+sumy==0.8.1
+fpdf==1.7.2
+datefinder==0.7.0
