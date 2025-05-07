@@ -2,5 +2,5 @@ streamlit
 nltk==3.8.1
 PyMuPDF
 datefinder
-sumy
-fpdf
+fpdf2
+gensim
