@@ -2,3 +2,4 @@ streamlit
 nltk==3.8.1
 PyMuPDF
 datefinder
+sumy
