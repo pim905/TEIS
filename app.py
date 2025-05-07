@@ -10,6 +10,7 @@ import urllib.request
 from fpdf import FPDF
 from sumy.parsers.plaintext import PlaintextParser
 from sumy.summarizers.lsa import LsaSummarizer
+import re
 
 # Download necessary NLTK resources
 nltk.download('punkt')
@@ -53,6 +54,14 @@ def summarize_text_with_sumy(text):
     summary = summarizer(parser.document, 3)  # Summarizes into 3 sentences (adjustable)
     return ' '.join([str(sentence) for sentence in summary])
 
+# Clean extracted text from PDF
+def clean_text(text):
+    # Remove extra line breaks, spaces, and unwanted characters
+    cleaned_text = re.sub(r'\n+', ' ', text)  # Replace multiple line breaks with a space
+    cleaned_text = re.sub(r'\s+', ' ', cleaned_text)  # Replace multiple spaces with a single space
+    cleaned_text = cleaned_text.strip()
+    return cleaned_text
+
 # Extract text from PDF
 def extract_text_from_pdf(pdf_file):
     pdf_bytes = pdf_file.read()
@@ -60,7 +69,7 @@ def extract_text_from_pdf(pdf_file):
     text = ""
     for page in doc:
         text += page.get_text()
-    return text
+    return clean_text(text)  # Clean the extracted text
 
 # PDF report generation using FreeSerif.ttf
 class PDF(FPDF):
