@@ -4,3 +4,4 @@ pdfplumber
 sumy==0.8.1
 fpdf==1.7.2
 datefinder==0.7.0
+altair==4.2.2
