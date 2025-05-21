@@ -17,20 +17,38 @@ nltk.download('maxent_ne_chunker')
 nltk.download('words')
 nltk.download('averaged_perceptron_tagger')
 
-# Function to extract names from text
+# Improved function to extract unique full names and avoid duplicate first names
 def extract_names(text):
     words = word_tokenize(text)
     tagged_words = pos_tag(words)
     named_entities = ne_chunk(tagged_words)
-    
-    people_names = []
+
+    full_names = set()
+    first_names = set()
+
     for chunk in named_entities:
-        if isinstance(chunk, nltk.Tree):
-            if chunk.label() == 'PERSON':
-                name = " ".join([word for word, tag in chunk])
-                people_names.append(name)
-    
-    return people_names
+        if isinstance(chunk, nltk.Tree) and chunk.label() == 'PERSON':
+            name = " ".join([word for word, tag in chunk])
+            full_names.add(name)
+
+    # Collect first names from full names
+    for full_name in full_names:
+        first_name = full_name.split()[0]
+        first_names.add(first_name)
+
+    # Also find standalone first names (single-token PERSON entities)
+    single_names = set()
+    for chunk in named_entities:
+        if isinstance(chunk, nltk.Tree) and chunk.label() == 'PERSON':
+            if len(chunk.leaves()) == 1:
+                single_name = chunk.leaves()[0][0]
+                # Add only if not already part of any full name's first name
+                if single_name not in first_names:
+                    single_names.add(single_name)
+
+    # Combine full names and single names without duplication
+    combined_names = list(full_names) + list(single_names)
+    return combined_names
 
 # Function to extract dates from text using datefinder
 def extract_dates(text):
