@@ -1,6 +1,8 @@
-streamlit==1.10.0
-nltk==3.7
-PyMuPDF==1.18.19
+streamlit
+nltk==3.8.1
+pdfplumber
+datefinder
 sumy==0.8.1
-fpdf==1.7.2
-datefinder==0.7.0
+fpdf2
+PyMuPDF==1.20.0
+altair==4.2.2
