@@ -2,7 +2,7 @@ import streamlit as st
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag, ne_chunk
-import fitz  # PyMuPDF
+import pdfplumber
 import io
 import datefinder
 
