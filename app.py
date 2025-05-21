@@ -3,120 +3,169 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag, ne_chunk
 import fitz  # PyMuPDF for PDF text extraction
-import io
-import datefinder
+import io  # For handling in-memory files
+import datefinder  # For extracting dates from text
+
+# Sumy summarization
 from sumy.parsers.plaintext import PlaintextParser
 from sumy.nlp.tokenizers import Tokenizer
 from sumy.summarizers.lsa import LsaSummarizer
-from fpdf import FPDF  # fpdf2
-import os
+from fpdf import FPDF  # PDF generation
 
-# Download required NLTK resources
+# Download necessary NLTK resources
 nltk.download('punkt')
 nltk.download('maxent_ne_chunker')
 nltk.download('words')
 nltk.download('averaged_perceptron_tagger')
 
-# Extract names
+# Function to extract names from text
 def extract_names(text):
     words = word_tokenize(text)
     tagged_words = pos_tag(words)
     named_entities = ne_chunk(tagged_words)
-    names = []
+    
+    people_names = []
     for chunk in named_entities:
-        if isinstance(chunk, nltk.Tree) and chunk.label() == 'PERSON':
-            name = " ".join([word for word, tag in chunk])
-            names.append(name)
-    return names
+        if isinstance(chunk, nltk.Tree):
+            if chunk.label() == 'PERSON':
+                name = " ".join([word for word, tag in chunk])
+                people_names.append(name)
+    
+    return people_names
 
-# Extract dates
+# Function to extract dates from text using datefinder
 def extract_dates(text):
     matches = datefinder.find_dates(text)
-    return [match.strftime('%Y-%m-%d') for match in matches]
+    dates = [match.strftime('%Y-%m-%d') for match in matches]  # Format as YYYY-MM-DD
+    return dates
 
-# Extract text from PDF
+# Function to extract text from a PDF file (handling in-memory PDF)
 def extract_text_from_pdf(pdf_file):
     pdf_bytes = pdf_file.read()
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     text = ""
-    for page in doc:
-        text += page.get_text()
+    for page_num in range(doc.page_count):
+        page = doc.load_page(page_num)
+        page_text = page.get_text("text")
+        text += page_text
     return text
 
-# Summarize using sumy
+# Function to summarize text using Sumy
 def summarize_text(text, num_sentences=3):
     parser = PlaintextParser.from_string(text, Tokenizer("english"))
     summarizer = LsaSummarizer()
     summary = summarizer(parser.document, num_sentences)
-    return " ".join(str(sentence) for sentence in summary)
+    summarized_text = " ".join(str(sentence) for sentence in summary)
+    return summarized_text
 
-# Generate PDF report with Unicode font
+# Function to generate a PDF report
 def generate_pdf_report(names, dates, summary, extracted_text):
     pdf = FPDF()
     pdf.add_page()
+    
+    # Set font
+    pdf.set_font("Arial", size=12)
 
-    font_path = "FreeSerif.ttf"
-    if not os.path.exists(font_path):
-        raise FileNotFoundError("FreeSerif.ttf font file is missing. Please include it in the app directory.")
+    # Title
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(200, 10, txt="Extracted Information Report", ln=True, align='C')
+    pdf.ln(10)
 
-    pdf.add_font("FreeSerif", "", font_path, uni=True)
-    pdf.set_font("FreeSerif", size=12)
+    # Extracted Text
+    pdf.set_font("Arial", size=12)
+    pdf.multi_cell(0, 10, f"Extracted Text:\n{extracted_text}\n\n")
+    
+    # Names
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(200, 10, txt="Extracted People Names:", ln=True)
+    pdf.set_font("Arial", size=12)
+    for name in names:
+        pdf.cell(200, 10, txt=f"- {name}", ln=True)
+    pdf.ln(5)
 
-    pdf.multi_cell(0, 10, "Named Entity Recognition (NER), Dates, and Summary Report\n\n")
+    # Dates
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(200, 10, txt="Extracted Dates:", ln=True)
+    pdf.set_font("Arial", size=12)
+    for date in dates:
+        pdf.cell(200, 10, txt=f"- {date}", ln=True)
+    pdf.ln(5)
 
-    pdf.multi_cell(0, 10, "Extracted People Names:\n" + (", ".join(names) if names else "None") + "\n\n")
-    pdf.multi_cell(0, 10, "Extracted Dates:\n" + (", ".join(dates) if dates else "None") + "\n\n")
-    pdf.multi_cell(0, 10, "Summary:\n" + summary + "\n\n")
-    pdf.multi_cell(0, 10, "Extracted Text:\n" + extracted_text + "\n")
+    # Summary
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(200, 10, txt="Summary:", ln=True)
+    pdf.set_font("Arial", size=12)
+    pdf.multi_cell(0, 10, summary)
 
-    output = io.BytesIO()
-    pdf.output(output)
-    output.seek(0)
-    return output
+    # Output PDF to a byte stream
+    pdf_output = pdf.output(dest='S').encode('latin-1')
+    return pdf_output
 
-# Streamlit UI
-st.title("NER, Date Extraction & Summarization Tool")
+# Streamlit app interface
+st.title("Named Entity Recognition (NER), Date Extraction, and Text Summarization")
 
 input_type = st.radio("Choose Input Type", ("Plain Text", "PDF File"))
 
 if input_type == "Plain Text":
     text_input = st.text_area("Paste your text here:")
-    if text_input and st.button("Extract"):
+    if text_input and st.button('Extract Names, Dates, and Summary'):
         names = extract_names(text_input)
         dates = extract_dates(text_input)
         summary = summarize_text(text_input)
 
-        st.subheader("Extracted People Names:")
-        st.write(names if names else "None found")
+        if names:
+            st.subheader("Extracted People Names:")
+            for name in names:
+                st.write(name)
+        else:
+            st.write("No people's names found in the text.")
+        
+        if dates:
+            st.subheader("Extracted Dates:")
+            for date in dates:
+                st.write(date)
+        else:
+            st.write("No dates found in the text.")
 
-        st.subheader("Extracted Dates:")
-        st.write(dates if dates else "None found")
+        if summary:
+            st.subheader("Summary of the Text:")
+            st.write(summary)
 
-        st.subheader("Summary:")
-        st.write(summary)
-
+        # Generate PDF
         pdf_bytes = generate_pdf_report(names, dates, summary, text_input)
-        st.download_button("Download PDF Report", data=pdf_bytes, file_name="summary_report.pdf")
+        st.download_button("Download PDF Report", data=pdf_bytes, file_name="extracted_report.pdf", mime="application/pdf")
 
 elif input_type == "PDF File":
     pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
-    if pdf_file and st.button("Extract"):
+    if pdf_file and st.button('Extract Names, Dates, and Summary'):
         text_from_pdf = extract_text_from_pdf(pdf_file)
+        st.text_area("Extracted PDF Text:", text_from_pdf)  # Optional: Show PDF text
 
-        st.text_area("Extracted PDF Text:", text_from_pdf)
+        if text_from_pdf:
+            names = extract_names(text_from_pdf)
+            dates = extract_dates(text_from_pdf)
+            summary = summarize_text(text_from_pdf)
 
-        names = extract_names(text_from_pdf)
-        dates = extract_dates(text_from_pdf)
-        summary = summarize_text(text_from_pdf)
+            if names:
+                st.subheader("Extracted People Names:")
+                for name in names:
+                    st.write(name)
+            else:
+                st.write("No people's names found in the PDF.")
+            
+            if dates:
+                st.subheader("Extracted Dates:")
+                for date in dates:
+                    st.write(date)
+            else:
+                st.write("No dates found in the PDF.")
 
-        st.subheader("Extracted People Names:")
-        st.write(names if names else "None found")
+            if summary:
+                st.subheader("Summary of the PDF Text:")
+                st.write(summary)
 
-        st.subheader("Extracted Dates:")
-        st.write(dates if dates else "None found")
-
-        st.subheader("Summary:")
-        st.write(summary)
-
-        pdf_bytes = generate_pdf_report(names, dates, summary, text_from_pdf)
-        st.download_button("Download PDF Report", data=pdf_bytes, file_name="summary_report.pdf")
+            # Generate PDF
+            pdf_bytes = generate_pdf_report(names, dates, summary, text_from_pdf)
+            st.download_button("Download PDF Report", data=pdf_bytes, file_name="extracted_report.pdf", mime="application/pdf")
+        else:
+            st.write("No text extracted from the PDF.")
